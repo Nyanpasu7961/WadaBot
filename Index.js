@@ -12,7 +12,7 @@ var IEPeopledict = {
     
 }
 
-var fetchURL = fetch("https://al.fg-games.co.jp/news/");
+//var fetchURL = fetch("https://al.fg-games.co.jp/news/"); Me trying out fetch() but failing.
 
 //*NOTE: All "console.log() functions are for debugging."
 
