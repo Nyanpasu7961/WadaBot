@@ -1,6 +1,5 @@
 const {Client, Attachment, RichEmbed} = require('discord.js')
 const client = new Client()
-const fetch = require("node-fetch")
 var Maindict = {
     items: [],
     identification: [],
