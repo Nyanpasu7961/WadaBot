@@ -1,8 +1,5 @@
 const {Client, Attachment, RichEmbed} = require('discord.js')
 const client = new Client()
-const fetch = require("node-fetch")
-const twit = require('twit')
-const config = require('config.js')
 
 var Maindict = {
     items: [],
@@ -25,7 +22,7 @@ client.on('ready', () => {
     startChannels.send("RaidBot is now online.").then(d_msg =>{d_msg.delete(3600000)})
 })
 
-bot_secret_token = "NTk0Mjk0MjMxNDA5ODg1MTk2.XRlSpw.2-IRtKkNALWmXlezkXeuYtH7u1Q"
+bot_secret_token = "PUT TOKEN HERE"
 
 client.on('message', (receivedMessage) => {
     if (receivedMessage.author == client.user) { // Prevent bot from responding to its own messages
