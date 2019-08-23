@@ -1,5 +1,9 @@
 const {Client, Attachment, RichEmbed} = require('discord.js')
 const client = new Client()
+const fetch = require("node-fetch")
+const twit = require('twit')
+const config = require('config.js')
+
 var Maindict = {
     items: [],
     identification: [],
@@ -11,8 +15,6 @@ var IEPeopledict = {
     
 }
 
-//var fetchURL = fetch("https://al.fg-games.co.jp/news/"); Me trying out fetch() but failing.
-
 //*NOTE: All "console.log() functions are for debugging."
 
 client.on('ready', () => {
@@ -20,19 +22,12 @@ client.on('ready', () => {
     console.log("Connected as " + client.user.tag)
     var startChannels = client.channels.get("586192097699168277")
     x => x.displayName.toLowerCase() === Maindict.items[index][i+6].toLowerCase()
-    //startChannels.send("RaidBot is now online.").then(d_msg =>{d_msg.delete(3600000)})
+    startChannels.send("RaidBot is now online.").then(d_msg =>{d_msg.delete(3600000)})
 })
 
-bot_secret_token = "PUT TOKEN HERE"
+bot_secret_token = "NTk0Mjk0MjMxNDA5ODg1MTk2.XRlSpw.2-IRtKkNALWmXlezkXeuYtH7u1Q"
 
 client.on('message', (receivedMessage) => {
-    /* Me trying out fetch() but failing.
-    fetchURL.then(function(response) {
-        response.text().then(function(news) {
-            var generalChannel = client.channels.get("588861416719515652")
-            generalChannel.send(news);
-        });
-      });*/
     if (receivedMessage.author == client.user) { // Prevent bot from responding to its own messages
         return
     }
@@ -68,7 +63,8 @@ function processCommand(receivedMessage) {
     
     } else if (primaryCommand == "add") {
         addCommand(arguments, receivedMessage)
-    
+    } else if (primaryCommand == "retweet"){
+        retweet(receivedMessage)
     } else if (primaryCommand == "clearchat") {
         clearCommand(arguments, receivedMessage)
     
@@ -169,7 +165,6 @@ function addCommand(arguments, receivedMessage) {
         }
     }
     else if (arguments[2].slice(-1)=="k"){
-        arguments[2] = arguments.slice(0, -1)
         argConfig = []
         if (arguments[4] == "red"){
             argConfig.push("```coffeescript\n", '"#{'+arguments[0], arguments[1], arguments[2], arguments[3]+'}"', "\n```")
@@ -181,6 +176,7 @@ function addCommand(arguments, receivedMessage) {
         else{
             argConfig.push("```ml\n", arguments[0], arguments[1],  arguments[2], arguments[3], "\n```")
             Maindict.items.push(argConfig)
+            console.log(Maindict.items)
             generalSorting(arguments)
         }
     }
@@ -258,7 +254,7 @@ function updateCommand(arguments, receivedMessage){
             //remove username from list
             Maindict.items.splice(index, 1)
             //check if important
-            if (arguments[4] == "red"){ // add command
+            if (arguments[4] == "red"){ // add command NEED TO FIX
                 argConfig.push("```coffeescript\n", '"#{'+arguments[0], arguments[1], arguments[2], arguments[3]+'}"', "\n```")
                 console.log("Arguments: "+argConfig)
                 Maindict.items.push(argConfig)
@@ -284,7 +280,7 @@ async function clearCommand(arguments, receivedMessage){
     }
     else {
         //channel ID here pls
-        var generalChannel = client.channels.get("586192097699168277") // replace with known channel IP DO IT 
+        var generalChannel = client.channels.get("588861416719515652") // replace with known channel IP DO IT 
         let fetched;
         //fetch messages from channel, limit 100
         fetched = await generalChannel.fetchMessages({limit: arguments[0]});
@@ -325,13 +321,14 @@ function stuckCommand(arguments, receivedMessage){
         receivedMessage.channel.send("You're already stuck somewhere...far far away... Use !remstuck")
         return
     }*/
+
     //check if someone is stuck on that raid boss already.
     //if so, only append username
     if(Maindict.items[index].length > 6){
         Maindict.items[index].push(arguments[1])
         generalSorting(arguments) 
     }
-    //if not, append stuck notification and username
+    //if not, append stuck prefix and username
     else{
         Maindict.items[index].push("```Stuck: "+arguments[1])
         generalSorting(arguments) 
@@ -437,16 +434,33 @@ function generalSorting(arguments){
         ("0" + m.getUTCHours()).slice(-2) + ":" +
         ("0" + m.getUTCMinutes()).slice(-2) + ":" +
         ("0" + m.getUTCSeconds()).slice(-2);
+
+    //Turning 'k' into HP
+    for (i in Maindict.items){
+        console.log(Maindict.items[i][3])
+        if (isNaN(Maindict.items[i][3])){
+            console.log(Maindict.items[i][3])
+            Maindict.items[i][3] = Maindict.items[i][3].slice(0, -1)
+            console.log(Maindict.items[i][3])
+            Maindict.items[i][3] = round(Maindict.items[i][3]*1000, 1)
+            console.log(Maindict.items[i][3])
+        }
+    }
+
     Maindict.items.sort(function(a, b){return parseInt(a[3])-parseInt(b[3])}) //sort HP values
     var generalChannel = client.channels.get("588861416719515652") // replace with known channel IP DO IT 588861416719515652
     MainMessage = "```css\n--------------------------------------------------------------------\n"
     + "Date: ["+ dateString + "]\n"+
-    "--------------------------------------------------------------------\n```\n"
+    "--------------------------------------------------------------------\n```"
     
-    //Storing in another list because im lazy
-    for (i in Maindict.items){
-        Maindict.procItems[i] = Maindict.items[i][3]
+    if (Maindict.items.length == 0){
+        return
     }
+
+    for (i in Maindict.items) {
+        Maindict.procItems[i]=Maindict.items[i][3]
+        console.log(Maindict.items[i][3])
+        }
     
     //Turning HP to [number]k
     for (i in Maindict.items){
@@ -460,14 +474,14 @@ function generalSorting(arguments){
             MainMessage += Maindict.items[i].slice(6, ).join(", ").toUpperCase() + "```"
         }
     }
-    generalChannel.send(MainMessage).then(d_msg =>{d_msg.delete(3600000)})
+    generalChannel.send(MainMessage+"\n").then(d_msg =>{d_msg.delete(3600000)})
     
     //Turning it back to a number
     for (i in Maindict.items){
         Maindict.items[i][3] = Maindict.procItems[i]
         console.log(Maindict.items[i][3])
         }
-    }   
+    }
 
 function mentionPing(arguments, receivedMessage){
     MemberID = receivedMessage.guild.members.find(x => x.displayName.toLowerCase() === arguments[0].toLowerCase())
