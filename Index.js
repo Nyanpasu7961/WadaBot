@@ -122,24 +122,16 @@ function addCommand(arguments, receivedMessage) {
         split.push(Maindict.items[i][1].toLowerCase())
         console.log(split)
     }
-    //if adding username already in list, send message.
-    if (split.includes(arguments[0].toLowerCase())){
-        receivedMessage.channel.send("You already have a titan up. Use `!remove` [username] to remove it from the list.")
-        return
-    }
-    //check argument[0] for mine.
+    //change name to discord ign
     if (arguments[0] == "mine"){
         argConfig = []
         console.log(receivedMessage.member.displayName)
         //let argument[0] be the message sender's username
         arguments[0] = receivedMessage.member.displayName
-        if (split.includes(arguments[0].toLowerCase())){
-            receivedMessage.channel.send("You already have a titan up. Use `!remove` [username] to remove it from the list.")
-            return
-        }
-        argConfig.push("```ml\n", arguments[0], arguments[1],  arguments[2], arguments[3], "\n```")
-        Maindict.items.push(argConfig)
-        generalSorting(arguments)
+    }
+    //if adding username already in list, send message.
+    if (split.includes(arguments[0].toLowerCase())){
+        receivedMessage.channel.send("You already have a titan up. Use `!remove` [username] to remove it from the list.")
         return
     }
     if (!isNaN(arguments[2])){
@@ -195,6 +187,13 @@ function removeCommand(arguments, receivedMessage) {
         console.log(Maindict.items[i][1])
         split.push(Maindict.items[i][1].toLowerCase())
         console.log(split)
+    }
+    //change name to discord ign
+    if (arguments[0] == "mine"){
+        argConfig = []
+        console.log(receivedMessage.member.displayName)
+        //let argument[0] be the message sender's username
+        arguments[0] = receivedMessage.member.displayName
     }
     MessageName = arguments[0].toLowerCase()
     //find username from arguments[0] (non case-sensitive)
