@@ -92,7 +92,7 @@ function processCommand(receivedMessage) {
 function helpCommand(arguments, receivedMessage) {
     CommandList = "Here are the commands:\n"+
     "`!add [username] [raidboss name] [hp] [lap]` - Add anyone's titan on the raid list. Adding 'mine' as [username] puts your username as the owner of the raid boss.\n"+
-    "`!remove [username]` - Remove anyone's titan on the raid list. This will ping the owner of the titan and people who are stuck on the titan.\n"+
+    "`!remove [username]` - Remove anyone's titan on the raid list. This will ping the owner of the titan and people who are stuck on the titan. Adding 'mine' as [username] puts your username as the owner of the raid boss.\n"+
     "`!list` - Gives the raid list.\n"+
     "`!stuck [owner of raidboss] [username]` - Puts you on the stuck list of a raidboss.\n"+
     "`!update [username] [raidboss name] [hp] [lap]` - Update anyone's titan on the raid list.\n"+
@@ -137,10 +137,6 @@ function addCommand(arguments, receivedMessage) {
             receivedMessage.channel.send("You already have a titan up. Use `!remove` [username] to remove it from the list.")
             return
         }
-        argConfig.push("```ml\n", arguments[0], arguments[1],  arguments[2], arguments[3], "\n```")
-        Maindict.items.push(argConfig)
-        generalSorting(arguments)
-        return
     }
     if (!isNaN(arguments[2])){
         argConfig = []
@@ -187,6 +183,7 @@ function removeCommand(arguments, receivedMessage) {
         receivedMessage.channel.send("Not enough values. Use IGN after command")
         return
     }
+    
     //create list
     split = []
     //append all usernames into list
@@ -195,6 +192,16 @@ function removeCommand(arguments, receivedMessage) {
         console.log(Maindict.items[i][1])
         split.push(Maindict.items[i][1].toLowerCase())
         console.log(split)
+    }
+    if (arguments[0] == "mine"){
+        argConfig = []
+        console.log(receivedMessage.member.displayName)
+        //let argument[0] be the message sender's username
+        arguments[0] = receivedMessage.member.displayName
+        if (split.includes(arguments[0].toLowerCase())){
+            receivedMessage.channel.send("You already have a titan up. Use `!remove` [username] to remove it from the list.")
+            return
+        }
     }
     MessageName = arguments[0].toLowerCase()
     //find username from arguments[0] (non case-sensitive)
