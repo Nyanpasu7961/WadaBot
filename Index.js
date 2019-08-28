@@ -256,7 +256,7 @@ function removeallCommand(arguments, receivedMessage){
     receivedMessage.channel.send("Removed everything from list.")
 }
 
-//updating the list (!remove and !add combined)
+//updating the list
 function updateCommand(arguments, receivedMessage){
     if (arguments.length < 3) {
         receivedMessage.channel.send("Set it this way -> IGN / BOSS NAME / HP LEFT / LAP [OPTIONAL] / FLAG[RED ONLY]")
@@ -283,25 +283,10 @@ function updateCommand(arguments, receivedMessage){
         }
         else{
             console.log(index)
-            //remove username from list
-            Maindict.items.splice(index, 1)
-            //check if important
-            if (arguments[4] == "red"){ // add command NEED TO FIX
-                argConfig.push("```coffeescript\n", '"#{'+arguments[0], arguments[1], arguments[2], arguments[3]+'}"', "\n```")
-                console.log("Arguments: "+argConfig)
-                Maindict.items.push(argConfig)
-                console.log("Maindict.items: "+Maindict.items)
-                generalSorting(arguments)
-            }
-            else{
-                argConfig.push("```ml\n", arguments[0], arguments[1],  arguments[2], arguments[3], "\n```")
-                Maindict.items.push(argConfig)
-                generalSorting(arguments)
+            Maindict.items[index][3] = arguments[2] // let HP change to HP assigned by argument 3.
+            generalSorting(arguments) //Sort by HP
         }    
-
     }
-}
-    
 }
 
 //clear the chat based on argument[0]
