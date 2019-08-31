@@ -64,7 +64,7 @@ function processCommand(receivedMessage) {
         retweet(receivedMessage)
     } else if (primaryCommand == "clearchat") {
         clearCommand(arguments, receivedMessage)
-    
+
     } else if (primaryCommand == "list") {
         listCommand(arguments, receivedMessage)
     
@@ -97,6 +97,7 @@ function helpCommand(arguments, receivedMessage) {
     "`!stuck [owner of raidboss] [username]` - Puts you on the stuck list of a raidboss.\n"+
     "`!update [username] [raidboss name] [hp] [lap]` - Update anyone's titan on the raid list.\n"+
     "`!removeall` - Removes everything from the raid list.\n"+
+    "`!clearchat [number]` - Clear messages by raidbot in #raids-targets.\n"+
     "NOTE: EACH SPACE REPRESENTS A NEW ARGUMENT."
     receivedMessage.channel.send(CommandList)
 }
@@ -379,75 +380,66 @@ function listCommand(arguments, receivedMessage){
             }
         }   
 
-        //sort by lap
-        if (arguments[0] == "lap"){
-            Maindict.items.sort(function(a, b){return parseInt(a[4])-parseInt(b[4])}) //sort HP values
-            MainMessage = "```css\n--------------------------------------------------------------------\n"
-            + "Date: ["+ dateString + "(UTC)]\n"+
-            "--------------------------------------------------------------------\n```\n"
-    
-            //Storing in another list because im lazy
-            for (i in Maindict.items){
-                Maindict.procItems[i] = Maindict.items[i][3]
-            }
-    
-            //Turning HP to [number]k
-            for (i in Maindict.items){
-                if (!isNaN(Maindict.items[i][3])){
-                    if(Maindict.items[i][3] > 1000){
-                        Maindict.items[i][3] = Maindict.items[i][3]/1000 + "k"
-                        }
-                    }
-                console.log(Maindict.items[i])
-                MainMessage += Maindict.items[i].join(" | ").toUpperCase()
-                }
-            receivedMessage.channel.send(MainMessage)  
-            //Turning it back to a number
-            for (i in Maindict.items){
-                Maindict.items[i][3] = Maindict.procItems[i]
+        for (i in Maindict.items){
+            console.log(Maindict.items[i][3])
+            if (isNaN(Maindict.items[i][3])){
                 console.log(Maindict.items[i][3])
-            }  
+                Maindict.items[i][3] = Maindict.items[i][3].slice(0, -1)
+                console.log(Maindict.items[i][3])
+                Maindict.items[i][3] = round(Maindict.items[i][3]*1000, 1)
+                console.log(Maindict.items[i][3])
+            }
         }
 
-
+        //sort by lap
+        if (arguments[0] == "lap"){
+            //Turning 'k' into HP
+            Maindict.items.sort(function(a, b){return parseInt(a[4])-parseInt(b[4])}) //sort HP values
+        }
         else {
             Maindict.items.sort(function(a, b){return parseInt(a[3])-parseInt(b[3])}) //sort HP values
-            MainMessage = "```css\n--------------------------------------------------------------------\n"
-            + "Date: ["+ dateString + "(UTC)]\n"+
-            "--------------------------------------------------------------------\n```\n"
+        }
+        var generalChannel = client.channels.get("586193653915975680") // replace with known channel IP DO IT 588861416719515652
+         MainMessage = "```css\n--------------------------------------------------------------------\n"
+        + "Date: ["+ dateString + "]\n"+
+        "--------------------------------------------------------------------\n```"
     
-            //Storing in another list because im lazy
-            for (i in Maindict.items){
-                Maindict.procItems[i] = Maindict.items[i][3]
+        if (Maindict.items.length < 1){
+            generalChannel.send("```css\n--------------------------------------------------------------------\n"
+            + "Date: ["+ dateString + "]\n"+ "No Raid Targets."+
+            "--------------------------------------------------------------------\n```")
+            return
+        }
+
+        for (i in Maindict.items) {
+            Maindict.procItems[i]=Maindict.items[i][3]
+            console.log(Maindict.items[i][3])
             }
     
-            //Turning HP to [number]k
-            for (i in Maindict.items){
-                if (!isNaN(Maindict.items[i][3])){
-                    if(Maindict.items[i][3] > 1000){
-                        Maindict.items[i][3] = round(Maindict.items[i][3]/1000, 1) + "k"
-                    }
-                }
-                console.log(Maindict.items[i])
-                console.log(Maindict.items[i][6])
-                MainMessage += Maindict.items[i].slice(0, 6).join(" | ").toUpperCase()
-                console.log(Maindict.items[i][7])
-                if (Maindict.items[i].length > 6){
-                    MainMessage += Maindict.items[i].slice(6, ).join(", ").toUpperCase() + "```"
+        //Turning HP to [number]k
+        for (i in Maindict.items){
+            if (!isNaN(Maindict.items[i][3])){
+                if(Maindict.items[i][3] > 1000){
+                    Maindict.items[i][3] = round(Maindict.items[i][3]/1000, 1) + "k"
                 }
             }
-            console.log(MainMessage)
-            receivedMessage.channel.send(MainMessage)  
-            //Turning it back to a number
-            
-            for (i in Maindict.items){
-                Maindict.items[i][3] = Maindict.procItems[i]
-                console.log(Maindict.items[i][3])
+            MainMessage += Maindict.items[i].slice(0, 6).join(" | ").toUpperCase()
+            if (Maindict.items[i].length > 6){
+                MainMessage += Maindict.items[i].slice(6, ).join(", ").toUpperCase() + "```"
             }
-        }    
-    }
+        }
+
+        MainMessage = MainMessage + "\n"
+
+        generalChannel.send(MainMessage+"\n").then(d_msg =>{d_msg.delete(3600000)})
         
-}
+        //Turning it back to a number
+        for (i in Maindict.items){
+            Maindict.items[i][3] = Maindict.procItems[i]
+            console.log(Maindict.items[i][3])
+            }
+        }
+    }
 
 function round(value, precision) {
     var multiplier = Math.pow(10, precision || 0);
