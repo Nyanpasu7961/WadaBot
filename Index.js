@@ -95,7 +95,7 @@ function helpCommand(arguments, receivedMessage) {
     "`!remove [username]` - Remove anyone's titan on the raid list. This will ping the owner of the titan and people who are stuck on the titan. Adding 'mine' as [username] puts your username as the owner of the raid boss.\n"+
     "`!list` - Gives the raid list.\n"+
     "`!stuck [owner of raidboss] [username]` - Puts you on the stuck list of a raidboss.\n"+
-    "`!update [username] [raidboss name] [hp] [lap]` - Update anyone's titan on the raid list.\n"+
+    "`!update [username] [hp]` - Update anyone's titan on the raid list.\n"+
     "`!removeall` - Removes everything from the raid list.\n"+
     "`!clearchat [number]` - Clear messages by raidbot in #raids-targets.\n"+
     "NOTE: EACH SPACE REPRESENTS A NEW ARGUMENT."
