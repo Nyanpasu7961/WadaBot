@@ -281,7 +281,7 @@ function updateCommand(arguments, receivedMessage){
         //find argument[0] in username list "split".
         var index = Math.ceil(split.indexOf(MessageName))
         //if argument[0] not in list, then send message.
-        if (isNaN(arguments[1])){
+        if (isNaN(arguments[1].slice(0, -1))){
             receivedMessage.channel.send("You did not state the HP after the IGN.")
             return
         }
