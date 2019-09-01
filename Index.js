@@ -19,7 +19,6 @@ client.on('ready', () => {
     console.log("Connected as " + client.user.tag)
     var startChannels = client.channels.get("586192097699168277")
     x => x.displayName.toLowerCase() === Maindict.items[index][i+6].toLowerCase()
-    startChannels.send("RaidBot is now online.").then(d_msg =>{d_msg.delete(3600000)})
 })
 
 bot_secret_token = "PUT TOKEN HERE"
@@ -259,11 +258,14 @@ function removeallCommand(arguments, receivedMessage){
 
 //updating the list
 function updateCommand(arguments, receivedMessage){
-    if (arguments.length < 3) {
-        receivedMessage.channel.send("Set it this way -> IGN / BOSS NAME / HP LEFT / LAP [OPTIONAL] / FLAG[RED ONLY]")
+    if (arguments.length < 1) {
+        receivedMessage.channel.send("Set it this way -> IGN / HP LEFT")
         return
     }
     else{
+        if (arguments[0] == "mine"){
+            arguments[0] = receivedMessage.member.displayName
+        }
         //List of arguments
         argConfig = []
         //list usernames in current raid
@@ -279,12 +281,16 @@ function updateCommand(arguments, receivedMessage){
         //find argument[0] in username list "split".
         var index = Math.ceil(split.indexOf(MessageName))
         //if argument[0] not in list, then send message.
+        if (isNaN(arguments[1])){
+            receivedMessage.channel.send("You did not state the HP after the IGN.")
+            return
+        }
         if (index == -1){
             receivedMessage.channel.send("The titan is not on the list.")
         }
         else{
             console.log(index)
-            Maindict.items[index][3] = arguments[2] // let HP change to HP assigned by argument 3.
+            Maindict.items[index][3] = arguments[1] // let HP change to HP assigned by argument 3.
             generalSorting(arguments) //Sort by HP
         }    
     }
@@ -342,7 +348,11 @@ function stuckCommand(arguments, receivedMessage){
 
     //check if someone is stuck on that raid boss already.
     //if so, only append username
-    if(Maindict.items[index].length > 6){
+    if (index == -1){
+        receivedMessage.channel.send("Raid boss doesn't exist.")
+    }
+    console.log(Maindict.items[index].length)
+    if (Maindict.items[index].length > 6){
         Maindict.items[index].push(arguments[1])
         generalSorting(arguments) 
     }
@@ -501,7 +511,7 @@ function generalSorting(arguments){
 
     MainMessage = MainMessage + "\n"
 
-    generalChannel.send(MainMessage+"\n").then(d_msg =>{d_msg.delete(3600000)})
+    generalChannel.send(MainMessage+"\n" + "\n").then(d_msg =>{d_msg.delete(3600000)})
     
     //Turning it back to a number
     for (i in Maindict.items){
