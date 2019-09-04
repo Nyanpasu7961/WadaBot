@@ -3,7 +3,6 @@ const client = new Client()
 
 var Maindict = {
     items: [],
-    identification: [],
     procItems: [],
     stuckPeople: [],
 }
@@ -19,9 +18,10 @@ client.on('ready', () => {
     console.log("Connected as " + client.user.tag)
     var startChannels = client.channels.get("586192097699168277")
     x => x.displayName.toLowerCase() === Maindict.items[index][i+6].toLowerCase()
+    startChannels.send("RaidBot is online.")
 })
 
-bot_secret_token = "PUT TOKEN HERE"
+bot_secret_token = "NTk0Mjk0MjMxNDA5ODg1MTk2.XWIS0g.gz-0yczyM-nIW6QlH9lt9XT8Nb4"
 
 client.on('message', (receivedMessage) => {
     if (receivedMessage.author == client.user) { // Prevent bot from responding to its own messages
@@ -33,7 +33,12 @@ client.on('message', (receivedMessage) => {
     }
 })
 
-/*function getDate(){
+client.on('disconnect', () =>{
+    var startChannels = client.channels.get("586192097699168277")
+    startChannels.send("RaidBot is offline.")
+})
+
+function getDate(){
     var m = new Date(); //TIME AND DATE UTC
     var dateString =
         m.getUTCFullYear() + "/" +
@@ -42,7 +47,8 @@ client.on('message', (receivedMessage) => {
         ("0" + m.getUTCHours()).slice(-2) + ":" +
         ("0" + m.getUTCMinutes()).slice(-2) + ":" +
         ("0" + m.getUTCSeconds()).slice(-2);
-}*/      
+    return dateString
+}    
 
 function processCommand(receivedMessage) {
     let fullCommand = receivedMessage.content.substr(1) // Remove the leading exclamation mark
@@ -122,64 +128,20 @@ function addCommand(arguments, receivedMessage) {
         split.push(Maindict.items[i][1].toLowerCase())
         console.log(split)
     }
+
+    //check for 'mine', if true then let arguments[0] be sender's nickname.
+    if (arguments[0]=="mine"){
+        arguments[0] = receivedMessage.member.displayName
+    }
+    
     //if adding username already in list, send message.
     if (split.includes(arguments[0].toLowerCase())){
         receivedMessage.channel.send("You already have a titan up. Use `!remove` [username] to remove it from the list.")
         return
     }
-    
-    //check argument[0] for mine.
-    if (arguments[0] == "mine"){
-        argConfig = []
-        console.log(receivedMessage.member.displayName)
-        //let argument[0] be the message sender's username
-        arguments[0] = receivedMessage.member.displayName
-        if (split.includes(arguments[0].toLowerCase())){
-            receivedMessage.channel.send("You already have a titan up. Use `!remove` [username] to remove it from the list.")
-            return
-        }
-        if (!isNaN(arguments[2])){
-            argConfig = []
-            //check any other names in username list for argument[0]
-            if (IEPeopledict.hasOwnProperty(arguments[0])){
-                
-            }
-            if (arguments[4] == "red"){
-                argConfig.push("```coffeescript\n", '"#{'+arguments[0], arguments[1], arguments[2], arguments[3]+'}"', "\n```")
-                console.log("Arguments: "+argConfig)
-                Maindict.items.push(argConfig)
-                console.log("Maindict: "+Maindict)
-                generalSorting(arguments)
-            }
-            else{
-                argConfig.push("```ml\n", arguments[0], arguments[1],  arguments[2], arguments[3], "\n```")
-                Maindict.items.push(argConfig)
-                generalSorting(arguments)
-            }
-        if (arguments[2].slice(-1) =="k"){
-            argConfig = []
-            if (arguments[4] == "red"){
-                argConfig.push("```coffeescript\n", '"#{'+arguments[0], arguments[1], arguments[2], arguments[3]+'}"', "\n```")
-                console.log("Arguments: "+argConfig)
-                Maindict.items.push(argConfig)
-                console.log("Maindict: "+Maindict)
-                generalSorting(arguments)
-            }
-            else{
-                argConfig.push("```ml\n", arguments[0], arguments[1],  arguments[2], arguments[3], "\n```")
-                Maindict.items.push(argConfig)
-                console.log(Maindict.items)
-                generalSorting(arguments)
-            }
-        }
-    }
-}
+
     if (!isNaN(arguments[2])){
         argConfig = []
-        //check any other names in username list for argument[0]
-        if (IEPeopledict.hasOwnProperty(arguments[0])){
-            
-        }
         if (arguments[4] == "red"){
             argConfig.push("```coffeescript\n", '"#{'+arguments[0], arguments[1], arguments[2], arguments[3]+'}"', "\n```")
             console.log("Arguments: "+argConfig)
@@ -194,6 +156,22 @@ function addCommand(arguments, receivedMessage) {
         }
     }
     else if (arguments[2].slice(-1)=="k"){
+        argConfig = []
+        if (arguments[4] == "red"){
+            argConfig.push("```coffeescript\n", '"#{'+arguments[0], arguments[1], arguments[2], arguments[3]+'}"', "\n```")
+            console.log("Arguments: "+argConfig)
+            Maindict.items.push(argConfig)
+            console.log("Maindict: "+Maindict)
+            generalSorting(arguments)
+        }
+        else{
+            argConfig.push("```ml\n", arguments[0], arguments[1],  arguments[2], arguments[3], "\n```")
+            Maindict.items.push(argConfig)
+            console.log(Maindict.items)
+            generalSorting(arguments)
+        }
+    }
+    else if (arguments[2].slice(-1) == "m"){
         argConfig = []
         if (arguments[4] == "red"){
             argConfig.push("```coffeescript\n", '"#{'+arguments[0], arguments[1], arguments[2], arguments[3]+'}"', "\n```")
@@ -258,7 +236,7 @@ function removeallCommand(arguments, receivedMessage){
 
 //updating the list
 function updateCommand(arguments, receivedMessage){
-    if (arguments.length < 1) {
+    if (arguments.length < 2) {
         receivedMessage.channel.send("Set it this way -> IGN / HP LEFT")
         return
     }
@@ -296,7 +274,7 @@ function updateCommand(arguments, receivedMessage){
     }
 }
 
-//clear the chat based on argument[0]
+//clear the chat based on arguments[0]
 async function clearCommand(arguments, receivedMessage){  
     if (isNaN(arguments[0])){
         receivedMessage.channel.send("Umm...I need a number. \nUse `!clearchat [number] [channel].` (Will only clear 100 posts max)")
@@ -345,13 +323,14 @@ function stuckCommand(arguments, receivedMessage){
         receivedMessage.channel.send("You're already stuck somewhere...far far away... Use !remstuck")
         return
     }*/
-
-    //check if someone is stuck on that raid boss already.
-    //if so, only append username
+    //check if raid boss exists or not
     if (index == -1){
         receivedMessage.channel.send("Raid boss doesn't exist.")
     }
+    console.log(Maindict.items[index])
     console.log(Maindict.items[index].length)
+    //check if someone is stuck on that raid boss already.
+    //if so, only append username
     if (Maindict.items[index].length > 6){
         Maindict.items[index].push(arguments[1])
         generalSorting(arguments) 
@@ -369,14 +348,7 @@ function listCommand(arguments, receivedMessage){
         receivedMessage.channel.send("No raid targets currently.")
     }
     else{
-        var m = new Date(); //TIME AND DATE UTC
-        var dateString =
-        m.getUTCFullYear() + "/" +
-        ("0" + (m.getUTCMonth()+1)).slice(-2) + "/" +
-        ("0" + m.getUTCDate()).slice(-2) + " " +
-        ("0" + m.getUTCHours()).slice(-2) + ":" +
-        ("0" + m.getUTCMinutes()).slice(-2) + ":" +
-        ("0" + m.getUTCSeconds()).slice(-2);
+        var messageDate = getDate()
         
         //Turning 'k' into HP
         for (i in Maindict.items){
@@ -411,12 +383,12 @@ function listCommand(arguments, receivedMessage){
         }
         var generalChannel = client.channels.get("586193653915975680") // replace with known channel IP DO IT 588861416719515652
          MainMessage = "```css\n--------------------------------------------------------------------\n"
-        + "Date: ["+ dateString + "]\n"+
+        + "Date: ["+ messageDate + "]\n"+
         "--------------------------------------------------------------------\n```"
     
         if (Maindict.items.length < 1){
             generalChannel.send("```css\n--------------------------------------------------------------------\n"
-            + "Date: ["+ dateString + "]\n"+ "No Raid Targets."+
+            + "Date: ["+ messageDate + "]\n"+ ".No Raid Targets.\n"+
             "--------------------------------------------------------------------\n```")
             return
         }
@@ -457,36 +429,38 @@ function round(value, precision) {
 }
 
 function generalSorting(arguments){ 
-    var m = new Date(); //TIME AND DATE UTC
-    var dateString =
-        m.getUTCFullYear() + "/" +
-        ("0" + (m.getUTCMonth()+1)).slice(-2) + "/" +
-        ("0" + m.getUTCDate()).slice(-2) + " " +
-        ("0" + m.getUTCHours()).slice(-2) + ":" +
-        ("0" + m.getUTCMinutes()).slice(-2) + ":" +
-        ("0" + m.getUTCSeconds()).slice(-2);
+    var messageDate = getDate()
 
     //Turning 'k' into HP
     for (i in Maindict.items){
         console.log(Maindict.items[i][3])
         if (isNaN(Maindict.items[i][3])){
-            console.log(Maindict.items[i][3])
-            Maindict.items[i][3] = Maindict.items[i][3].slice(0, -1)
-            console.log(Maindict.items[i][3])
-            Maindict.items[i][3] = round(Maindict.items[i][3]*1000, 1)
-            console.log(Maindict.items[i][3])
+            if (Maindict.items[i][3].slice(-1) == "k"){
+                console.log(Maindict.items[i][3])
+                Maindict.items[i][3] = Maindict.items[i][3].slice(0, -1)
+                console.log(Maindict.items[i][3])
+                Maindict.items[i][3] = round(Maindict.items[i][3]*1000, 1)
+                console.log(Maindict.items[i][3])
+            }
+            else if(Maindict.items[i][3].slice(-1) == "m"){
+                console.log(Maindict.items[i][3])
+                Maindict.items[i][3] = Maindict.items[i][3].slice(0, -1)
+                console.log(Maindict.items[i][3])
+                Maindict.items[i][3] = round(Maindict.items[i][3]*1000000, 1)
+                console.log(Maindict.items[i][3])
+            }
         }
     }
 
     Maindict.items.sort(function(a, b){return parseInt(a[3])-parseInt(b[3])}) //sort HP values
     var generalChannel = client.channels.get("588861416719515652") // replace with known channel IP DO IT 588861416719515652
     MainMessage = "```css\n--------------------------------------------------------------------\n"
-    + "Date: ["+ dateString + "]\n"+
+    + "Date: ["+ messageDate + "]\n"+
     "--------------------------------------------------------------------\n```"
     
     if (Maindict.items.length < 1){
         generalChannel.send("```css\n--------------------------------------------------------------------\n"
-        + "Date: ["+ dateString + "]\n"+ "No Raid Targets."+
+        + "Date: ["+ messageDate + "]\n"+ "No Raid Targets."+
         "--------------------------------------------------------------------\n```")
         return
     }
@@ -499,7 +473,10 @@ function generalSorting(arguments){
     //Turning HP to [number]k
     for (i in Maindict.items){
         if (!isNaN(Maindict.items[i][3])){
-            if(Maindict.items[i][3] > 1000){
+            if(Maindict.items[i][3] >= 1000000){
+                Maindict.items[i][3] = round(Maindict.items[i][3]/1000000, 1) + "m"
+            }
+            else if(Maindict.items[i][3] >= 1000){
                 Maindict.items[i][3] = round(Maindict.items[i][3]/1000, 1) + "k"
             }
         }
