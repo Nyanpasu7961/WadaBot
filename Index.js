@@ -1,5 +1,6 @@
 const {Client, Attachment, RichEmbed} = require('discord.js')
 const client = new Client()
+const fs = require('fs')
 
 var Maindict = {
     items: [],
@@ -11,6 +12,24 @@ var IEPeopledict = {
     
 }
 
+var onTrue = 0;
+
+const questions = [
+    "What's your IGN?",
+    "What's your account level?",
+    "What lap in raids did you get last time?",
+    "What was your aid count?",
+    "What time zone do you reside in?"
+];
+
+const applying = [
+
+]
+
+const applicationForm = [
+
+]
+
 //*NOTE: All "console.log() functions are for debugging."
 
 client.on('ready', () => {
@@ -18,10 +37,27 @@ client.on('ready', () => {
     console.log("Connected as " + client.user.tag)
     var startChannels = client.channels.get("586192097699168277")
     x => x.displayName.toLowerCase() === Maindict.items[index][i+6].toLowerCase()
-    startChannels.send("RaidBot is online.")
+    if (onTrue == 0){
+        startChannels.send("```md\n# Testing is now in session.\n```")
+    }
+    else{
+        startChannels.send("```css\nRaidBot is online.\n```")
+    }
+    //For save feature because i'm getting annoyed at when the RaidBot restarts, it resets the list
+    /*var createList = fs.readFile('./RaidBot_listData.json', 'utf8', (err, jsonString) => {
+        if (err) {
+            console.log("File read failed:", err)
+            return
+        }
+    })
+    for (i = 0; i < createList.length; i++){
+        argConfig = []
+        argConfig.push(createList[i].prefix, createList[i].name, createList[i].raidBoss, createList[i].HP, createList[i].lapNumber, createList[i].suffix)
+    }
+    generalSorting()*/
 })
 
-bot_secret_token = "NTk0Mjk0MjMxNDA5ODg1MTk2.XWIS0g.gz-0yczyM-nIW6QlH9lt9XT8Nb4"
+bot_secret_token = "PUT TOKEN HERE"
 
 client.on('message', (receivedMessage) => {
     if (receivedMessage.author == client.user) { // Prevent bot from responding to its own messages
@@ -30,7 +66,26 @@ client.on('message', (receivedMessage) => {
     
     if (receivedMessage.content.startsWith("!")) {
         processCommand(receivedMessage)
-    }
+    }   
+})
+
+//when guild member is added to port, then DM the member this message.
+client.on('guildMemberAdd', member =>{
+    var startChannels = client.channels.get("586192097699168277")
+    startChannels.send(member + " has joined the server!")
+    member.send("```css\nThis is an automated message from our server bot, RaidBot.```\n"+
+    "Welcome to the Wadatsumi Alchemia Port, " + member + "!\n"+ 
+    "We are a semi-competitive port always looking for new members to help us be on top!\n"+
+    "Feel free to look around our port and get along with our members.\n"+
+    "```md\n# Applications\n```"+
+    "Ask on the general-chat channel or DM @Taeleaf if you want to apply to the port.\n"+
+    "Information needed (Apply in #member-applications using !%apply):\n"+
+    "   - Your IGN\n"+
+    "   - Account Level\n"+
+    "   - Raid Statistics (i.e. what lap you got to last time and aid count)\n"+
+    "   - Your friend mercenaries in the #introductions channel.\n"+
+    "   - Timezone (i.e. AEST, UTC, etc.)\n"+
+    "Alright, that's pretty much all we need from you. We hope to see you active in our Discord channel and raids in the future!")
 })
 
 client.on('disconnect', () =>{
@@ -65,8 +120,6 @@ function processCommand(receivedMessage) {
     
     } else if (primaryCommand == "add") {
         addCommand(arguments, receivedMessage)
-    } else if (primaryCommand == "retweet"){
-        retweet(receivedMessage)
     } else if (primaryCommand == "clearchat") {
         clearCommand(arguments, receivedMessage)
 
@@ -88,6 +141,9 @@ function processCommand(receivedMessage) {
     } else if (primaryCommand == "ping"){
         mentionPing(arguments, receivedMessage)
     
+    } else if (primaryCommand == "%apply"){
+        applicationCommand(receivedMessage)
+    
     } else {
         receivedMessage.channel.send("I don't understand the command.")
     }
@@ -103,8 +159,75 @@ function helpCommand(arguments, receivedMessage) {
     "`!update [username] [hp]` - Update anyone's titan on the raid list.\n"+
     "`!removeall` - Removes everything from the raid list.\n"+
     "`!clearchat [number]` - Clear messages by raidbot in #raids-targets.\n"+
+    "`!%apply` - Apply for a position in our port! Just answer some questions. (Only works in "+ client.channels.get("628459213974405121") + ")\n" +
     "NOTE: EACH SPACE REPRESENTS A NEW ARGUMENT."
     receivedMessage.channel.send(CommandList)
+}
+
+//command for a port member application (Only works in the #application-forms channel)
+async function applicationCommand(receivedMessage){
+    //So not more than one application is by the same author at the same time.
+    if (applying.includes(receivedMessage.author.id)){
+        receivedMessage.channel.send("No applying more than once at a time.")
+        return;
+    } 
+    //check if in correct channel
+    if (!(receivedMessage.channel === client.channels.get("628459213974405121"))){
+        receivedMessage.channel.send("Please apply in the"+ client.channels.get("628459213974405121")+ " channel.")
+        return;
+    }
+    try {
+        //create a list of Q&A form
+        applicationForm = []
+        //log author's name
+        console.log(`${receivedMessage.author.tag} began applying.`);
+        //append to member's applying.
+        applying.push(receivedMessage.author.id);
+        //start message
+        await receivedMessage.channel.send(":pencil: **Application started!** Type `#cancel` to exit.");
+        //recurring questions
+        for (let i = 0, cancel = false; i < questions.length && cancel === false; i++) {
+            await receivedMessage.channel.send(questions[i]);
+            //check for time out, limits msg to 1 per question
+            await receivedMessage.channel.awaitMessages(m => m.author.id === receivedMessage.author.id, { max: 1, time: 3000000, errors: ["time"] })
+                //when msg sent, then continue.
+              .then(collected => {
+                  //if msg sent was #cancel, then cancel the application
+                if (collected.first().content.toLowerCase() === "#cancel") {
+                  receivedMessage.channel.send(":x: **Application cancelled.**");
+                  applying.splice(applying.indexOf(receivedMessage.author.id), 1);
+                  cancel = true;
+
+                  console.log(`${receivedMessage.author.tag} cancelled their application.`);
+                }
+                //Appends answers into a list.
+                //Bolds the IGN
+                if (i == 0){
+                    applicationForm.push("```css\n" + questions[i] + ": " + collected.first().content +"\n```")
+                }
+                else{
+                    applicationForm.push(questions[i] + ": " + collected.first().content)
+                } 
+                //If timed out, then cancel application.
+              }).catch(() => {
+                receivedMessage.channel.send(":hourglass: **Application timed out.** :LofiaUGH:");
+                applying.splice(applying.indexOf(receivedMessage.author.id), 1);
+                cancel = true;
+
+               console.log(`${receivedMessage.author.tag} let their application time out.`);
+              });
+            }
+        //Finishing message
+        await receivedMessage.channel.send(":thumbsup: **You're all done!**\nRemember to post your merc list in the #member-introductions channel or your application becomes invalid.");
+        //send to #member-applications channel for organisation
+        client.channels.get("628461198278656040").send(applicationForm)
+        //Log for application finished members
+        console.log(`${receivedMessage.author.tag} finished applying.`);
+    } 
+    //Send error to console when error is caught.
+    catch(err) {
+        console.error(err);
+    }
 }
 
 
@@ -146,13 +269,13 @@ function addCommand(arguments, receivedMessage) {
             argConfig.push("```coffeescript\n", '"#{'+arguments[0], arguments[1], arguments[2], arguments[3]+'}"', "\n```")
             console.log("Arguments: "+argConfig)
             Maindict.items.push(argConfig)
-            console.log("Maindict: "+Maindict)
-            generalSorting(arguments)
+            console.log("Maindict: "+ Maindict)
+            generalSorting()
         }
         else{
             argConfig.push("```ml\n", arguments[0], arguments[1],  arguments[2], arguments[3], "\n```")
             Maindict.items.push(argConfig)
-            generalSorting(arguments)
+            generalSorting()
         }
     }
     else if (arguments[2].slice(-1)=="k"){
@@ -162,13 +285,13 @@ function addCommand(arguments, receivedMessage) {
             console.log("Arguments: "+argConfig)
             Maindict.items.push(argConfig)
             console.log("Maindict: "+Maindict)
-            generalSorting(arguments)
+            generalSorting()
         }
         else{
             argConfig.push("```ml\n", arguments[0], arguments[1],  arguments[2], arguments[3], "\n```")
             Maindict.items.push(argConfig)
             console.log(Maindict.items)
-            generalSorting(arguments)
+            generalSorting()
         }
     }
     else if (arguments[2].slice(-1) == "m"){
@@ -178,13 +301,13 @@ function addCommand(arguments, receivedMessage) {
             console.log("Arguments: "+argConfig)
             Maindict.items.push(argConfig)
             console.log("Maindict: "+Maindict)
-            generalSorting(arguments)
+            generalSorting()
         }
         else{
             argConfig.push("```ml\n", arguments[0], arguments[1],  arguments[2], arguments[3], "\n```")
             Maindict.items.push(argConfig)
             console.log(Maindict.items)
-            generalSorting(arguments)
+            generalSorting()
         }
     }
     else{
@@ -224,7 +347,7 @@ function removeCommand(arguments, receivedMessage) {
             stuckPing(receivedMessage, index)
         }
         Maindict.items.splice(index, 1)
-        generalSorting(arguments)
+        generalSorting()
     }    
 }
 
@@ -269,7 +392,7 @@ function updateCommand(arguments, receivedMessage){
         else{
             console.log(index)
             Maindict.items[index][3] = arguments[1] // let HP change to HP assigned by argument 3.
-            generalSorting(arguments) //Sort by HP
+            generalSorting() //Sort by HP
         }    
     }
 }
@@ -283,8 +406,8 @@ async function clearCommand(arguments, receivedMessage){
     else {
         //channel ID here pls
         var generalChannel = client.channels.get("588861416719515652") // replace with known channel IP DO IT 
-        let fetched;
         //fetch messages from channel, limit 100
+        let fetched
         fetched = await generalChannel.fetchMessages({limit: arguments[0]});
         //delete fetched msg
         generalChannel.bulkDelete(fetched);
@@ -327,18 +450,16 @@ function stuckCommand(arguments, receivedMessage){
     if (index == -1){
         receivedMessage.channel.send("Raid boss doesn't exist.")
     }
-    console.log(Maindict.items[index])
-    console.log(Maindict.items[index].length)
     //check if someone is stuck on that raid boss already.
     //if so, only append username
     if (Maindict.items[index].length > 6){
         Maindict.items[index].push(arguments[1])
-        generalSorting(arguments) 
+        generalSorting() 
     }
     //if not, append stuck prefix and username
     else{
         Maindict.items[index].push("```Stuck: "+arguments[1])
-        generalSorting(arguments) 
+        generalSorting() 
     }
 }
 
@@ -372,7 +493,6 @@ function listCommand(arguments, receivedMessage){
                 console.log(Maindict.items[i][3])
             }
         }
-
         //sort by lap
         if (arguments[0] == "lap"){
             //Turning 'k' into HP
@@ -428,7 +548,7 @@ function round(value, precision) {
     return Math.round(value * multiplier) / multiplier;
 }
 
-function generalSorting(arguments){ 
+function generalSorting(){ 
     var messageDate = getDate()
 
     //Turning 'k' into HP
@@ -450,6 +570,17 @@ function generalSorting(arguments){
                 console.log(Maindict.items[i][3])
             }
         }
+        /*client.messages [meow[i]] = {
+            Prefix: Maindict.items[i][0],
+            name: Maindict.items[i][1],
+            raidBoss: Maindict.items[i][2],
+            HP: Maindict.items[i][3],
+            lapNumber: Maindict.items[i][4],
+            Suffix: Maindict.items[i][5],
+        }
+        fs.writeFile("./RaidBot_listData.json", JSON.stringify(client.messages, null, 4), err =>{
+            if (err) {throw err}
+        })*/
     }
 
     Maindict.items.sort(function(a, b){return parseInt(a[3])-parseInt(b[3])}) //sort HP values
@@ -460,8 +591,8 @@ function generalSorting(arguments){
     
     if (Maindict.items.length < 1){
         generalChannel.send("```css\n--------------------------------------------------------------------\n"
-        + "Date: ["+ messageDate + "]\n"+ "No Raid Targets."+
-        "--------------------------------------------------------------------\n```")
+        + "Date: ["+ messageDate + "]\n"+ ".No Raid Targets."+
+        "------------------------------------------------------------\n--------\n```")
         return
     }
 
@@ -500,7 +631,6 @@ function generalSorting(arguments){
 function mentionPing(arguments, receivedMessage){
     MemberID = receivedMessage.guild.members.find(x => x.displayName.toLowerCase() === arguments[0].toLowerCase())
     if (!MemberID){
-        console.log(receivedMessage.guild.members.find(x => x.user.username.toLowerCase() === arguments[0].toLowerCase()))
         MemberID = receivedMessage.guild.members.find(x => x.user.username.toLowerCase() === arguments[0].toLowerCase())
         if (!MemberID){
             receivedMessage.channel.send("The user could not be pinged because of additional characters or symbols not on the list.")
@@ -513,13 +643,9 @@ function mentionPing(arguments, receivedMessage){
 function stuckPing(receivedMessage, index){
     stuckList = []
     Maindict.items[index][6] = Maindict.items[index][6].replace("```Stuck: ", "")
-    console.log(Maindict.items[index][6])
-    console.log(Maindict.items[index].length)
     for (i = 0; i < Maindict.items[index].length - 6; i++){
-        console.log(Maindict.items[index][i])
         stuckMemberID = receivedMessage.guild.members.find(x => x.displayName.toLowerCase() === Maindict.items[index][i+6].toLowerCase())
         if (!stuckMemberID){
-            console.log(receivedMessage.guild.members.find(x => x.user.username.toLowerCase() === Maindict.items[index][i+6].toLowerCase()))
             stuckMemberID = receivedMessage.guild.members.find(x => x.user.username.toLowerCase() === Maindict.items[index][i+6].toLowerCase())
             if (!stuckMemberID){
                 receivedMessage.channel.send("The user could not be pinged because of additional characters or symbols not on the list.")
