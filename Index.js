@@ -1,6 +1,5 @@
 const {Client, Attachment, RichEmbed} = require('discord.js')
 const client = new Client()
-const fs = require('fs')
 
 var Maindict = {
     items: [],
