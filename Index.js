@@ -1,5 +1,5 @@
-const {Client, Attachment, RichEmbed} = require('discord.js')
-const client = new Client()
+const Discord = require('discord.js')
+const client = new Discord.Client()
 
 var Maindict = {
     items: [],
@@ -11,8 +11,9 @@ var IEPeopledict = {
     
 }
 
-var onTrue = 0;
+var onTrue = 1;
 
+//list of questions
 const questions = [
     "What's your IGN?",
     "What's your account level?",
@@ -36,6 +37,9 @@ client.on('ready', () => {
     console.log("Connected as " + client.user.tag)
     var startChannels = client.channels.get("586192097699168277")
     x => x.displayName.toLowerCase() === Maindict.items[index][i+6].toLowerCase()
+    /*const attachment = new Discord.Attachment("https://cdn.alchemistcodedb.com/images/units/artworks/reid.png")
+    startChannels.send(attachment)
+    startChannels.send("Happy Raiding! :salute:")*/
     if (onTrue == 0){
         startChannels.send("```md\n# Testing is now in session.\n```")
     }
@@ -272,6 +276,7 @@ function addCommand(arguments, receivedMessage) {
             generalSorting()
         }
         else{
+            receivedMessage.channel.send("Added " + arguments[1] + "'s raid target.")
             argConfig.push("```ml\n", arguments[0], arguments[1],  arguments[2], arguments[3], "\n```")
             Maindict.items.push(argConfig)
             generalSorting()
@@ -287,6 +292,7 @@ function addCommand(arguments, receivedMessage) {
             generalSorting()
         }
         else{
+            receivedMessage.channel.send("Added " + arguments[1] + "'s raid target.")
             argConfig.push("```ml\n", arguments[0], arguments[1],  arguments[2], arguments[3], "\n```")
             Maindict.items.push(argConfig)
             console.log(Maindict.items)
@@ -303,6 +309,7 @@ function addCommand(arguments, receivedMessage) {
             generalSorting()
         }
         else{
+            receivedMessage.channel.send("Added " + arguments[1] + "'s raid target.")
             argConfig.push("```ml\n", arguments[0], arguments[1],  arguments[2], arguments[3], "\n```")
             Maindict.items.push(argConfig)
             console.log(Maindict.items)
@@ -389,6 +396,7 @@ function updateCommand(arguments, receivedMessage){
             receivedMessage.channel.send("The titan is not on the list.")
         }
         else{
+            receivedMessage.send("Updated " + arguments[1] + "'s raid target.")
             console.log(index)
             Maindict.items[index][3] = arguments[1] // let HP change to HP assigned by argument 3.
             generalSorting() //Sort by HP
@@ -506,8 +514,8 @@ function listCommand(arguments, receivedMessage){
         "--------------------------------------------------------------------\n```"
     
         if (Maindict.items.length < 1){
-            generalChannel.send("```css\n--------------------------------------------------------------------\n"
-            + "Date: ["+ messageDate + "]\n"+ ".No Raid Targets.\n"+
+            generalChannel.send("```md\n--------------------------------------------------------------------\n"
+            + "Date: ["+ messageDate + "]\n"+ "#No Raid Targets.\n"+
             "--------------------------------------------------------------------\n```")
             return
         }
@@ -590,8 +598,8 @@ function generalSorting(){
     
     if (Maindict.items.length < 1){
         generalChannel.send("```css\n--------------------------------------------------------------------\n"
-        + "Date: ["+ messageDate + "]\n"+ ".No Raid Targets."+
-        "------------------------------------------------------------\n--------\n```")
+        + "Date: ["+ messageDate + "]\n"+ "[No Raid Targets.]\n"+
+        "--------------------------------------------------------------------\n```")
         return
     }
 
