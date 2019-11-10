@@ -1,5 +1,7 @@
 const Discord = require('discord.js')
 const client = new Discord.Client()
+const fs = require('fs');
+client.raidAddList = require("./RaidBot_listData.json");
 
 var Maindict = {
     items: [],
@@ -11,7 +13,7 @@ var IEPeopledict = {
     
 }
 
-var onTrue = 1;
+var onTrue = 0;
 
 //list of questions
 const questions = [
@@ -36,28 +38,29 @@ client.on('ready', () => {
     client.user.setPresence({ game: { name: 'with you. ;D' }})
     console.log("Connected as " + client.user.tag)
     var startChannels = client.channels.get("586192097699168277")
-    x => x.displayName.toLowerCase() === Maindict.items[index][i+6].toLowerCase()
     /*const attachment = new Discord.Attachment("https://cdn.alchemistcodedb.com/images/units/artworks/reid.png")
     startChannels.send(attachment)
     startChannels.send("Happy Raiding! :salute:")*/
-    if (onTrue == 0){
+    /*if (onTrue == 0){
         startChannels.send("```md\n# Testing is now in session.\n```")
     }
     else{
         startChannels.send("```css\nRaidBot is online.\n```")
-    }
+    }*/
     //For save feature because i'm getting annoyed at when the RaidBot restarts, it resets the list
-    /*var createList = fs.readFile('./RaidBot_listData.json', 'utf8', (err, jsonString) => {
-        if (err) {
-            console.log("File read failed:", err)
-            return
-        }
-    })
-    for (i = 0; i < createList.length; i++){
+    for (i = 0; i < Object.keys(client.raidAddList).length; i++){
+        console.log(client.raidAddList[Object.keys(client.raidAddList)[i]].Prefix)
         argConfig = []
-        argConfig.push(createList[i].prefix, createList[i].name, createList[i].raidBoss, createList[i].HP, createList[i].lapNumber, createList[i].suffix)
+        argConfig.push(client.raidAddList[Object.keys(client.raidAddList)[i]].Prefix, 
+        client.raidAddList[Object.keys(client.raidAddList)[i]].name, 
+        client.raidAddList[Object.keys(client.raidAddList)[i]].raidBoss, 
+        client.raidAddList[Object.keys(client.raidAddList)[i]].HP, 
+        client.raidAddList[Object.keys(client.raidAddList)[i]].lapNumber, 
+        client.raidAddList[Object.keys(client.raidAddList)[i]].Suffix)
+
+        Maindict.items.push(argConfig)
     }
-    generalSorting()*/
+    generalSorting()
 })
 
 bot_secret_token = "PUT TOKEN HERE"
@@ -89,11 +92,6 @@ client.on('guildMemberAdd', member =>{
     "   - Your friend mercenaries in the #introductions channel.\n"+
     "   - Timezone (i.e. AEST, UTC, etc.)\n"+
     "Alright, that's pretty much all we need from you. We hope to see you active in our Discord channel and raids in the future!")
-})
-
-client.on('disconnect', () =>{
-    var startChannels = client.channels.get("586192097699168277")
-    startChannels.send("RaidBot is offline.")
 })
 
 function getDate(){
@@ -131,7 +129,10 @@ function processCommand(receivedMessage) {
     
     } else if (primaryCommand == "stuck") {
         stuckCommand(arguments, receivedMessage)
-    
+
+    } else if (primaryCommand == "guildlist"){
+        onlineListCommand(receivedMessage)
+
     } else if (primaryCommand == "remove") {
         removeCommand(arguments, receivedMessage)
     
@@ -233,7 +234,12 @@ async function applicationCommand(receivedMessage){
     }
 }
 
-
+function onlineListCommand(receivedMessage){
+    const ListEmbed = new Discord.RichEmbed()
+            .setTitle('Member Availability')
+            .setDescription(receivedMessage.guild.roles.get('586192096906575892').members.map(m => m.user.tag).join('\n'));
+        receivedMessage.channel.send(ListEmbed); 
+    }
 
 function addCommand(arguments, receivedMessage) {
     //too many arguments
@@ -276,7 +282,7 @@ function addCommand(arguments, receivedMessage) {
             generalSorting()
         }
         else{
-            receivedMessage.channel.send("Added " + arguments[1] + "'s raid target.")
+            receivedMessage.channel.send("Added " + arguments[0] + "'s raid target.")
             argConfig.push("```ml\n", arguments[0], arguments[1],  arguments[2], arguments[3], "\n```")
             Maindict.items.push(argConfig)
             generalSorting()
@@ -292,7 +298,7 @@ function addCommand(arguments, receivedMessage) {
             generalSorting()
         }
         else{
-            receivedMessage.channel.send("Added " + arguments[1] + "'s raid target.")
+            receivedMessage.channel.send("Added " + arguments[0] + "'s raid target.")
             argConfig.push("```ml\n", arguments[0], arguments[1],  arguments[2], arguments[3], "\n```")
             Maindict.items.push(argConfig)
             console.log(Maindict.items)
@@ -309,7 +315,7 @@ function addCommand(arguments, receivedMessage) {
             generalSorting()
         }
         else{
-            receivedMessage.channel.send("Added " + arguments[1] + "'s raid target.")
+            receivedMessage.channel.send("Added " + arguments[0] + "'s raid target.")
             argConfig.push("```ml\n", arguments[0], arguments[1],  arguments[2], arguments[3], "\n```")
             Maindict.items.push(argConfig)
             console.log(Maindict.items)
@@ -540,7 +546,7 @@ function listCommand(arguments, receivedMessage){
 
         MainMessage = MainMessage + "\n"
 
-        generalChannel.send(MainMessage+"\n").then(d_msg =>{d_msg.delete(3600000)})
+        generalChannel.send(MainMessage+"\n")/*.then(d_msg =>{d_msg.delete(3600000)})*/
         
         //Turning it back to a number
         for (i in Maindict.items){
@@ -577,7 +583,8 @@ function generalSorting(){
                 console.log(Maindict.items[i][3])
             }
         }
-        /*client.messages [meow[i]] = {
+        raidOwner = Maindict.items[i][1];
+        client.raidAddList [raidOwner] = {
             Prefix: Maindict.items[i][0],
             name: Maindict.items[i][1],
             raidBoss: Maindict.items[i][2],
@@ -585,9 +592,9 @@ function generalSorting(){
             lapNumber: Maindict.items[i][4],
             Suffix: Maindict.items[i][5],
         }
-        fs.writeFile("./RaidBot_listData.json", JSON.stringify(client.messages, null, 4), err =>{
+        fs.writeFile("./RaidBot_listData.json", JSON.stringify(client.raidAddList, null, 4), err =>{
             if (err) {throw err}
-        })*/
+        })
     }
 
     Maindict.items.sort(function(a, b){return parseInt(a[3])-parseInt(b[3])}) //sort HP values
@@ -604,16 +611,18 @@ function generalSorting(){
     }
 
     for (i in Maindict.items) {
-        Maindict.procItems[i]=Maindict.items[i][3]
+        Maindict.procItems[i] = Maindict.items[i][3]
         console.log(Maindict.items[i][3])
         }
     
-    //Turning HP to [number]k
+    //Turning HP to [number]k or to [number]m
     for (i in Maindict.items){
         if (!isNaN(Maindict.items[i][3])){
+            //conversion to 1 million
             if(Maindict.items[i][3] >= 1000000){
                 Maindict.items[i][3] = round(Maindict.items[i][3]/1000000, 1) + "m"
             }
+            //conversion to 1k
             else if(Maindict.items[i][3] >= 1000){
                 Maindict.items[i][3] = round(Maindict.items[i][3]/1000, 1) + "k"
             }
@@ -626,7 +635,7 @@ function generalSorting(){
 
     MainMessage = MainMessage + "\n"
 
-    generalChannel.send(MainMessage+"\n" + "\n").then(d_msg =>{d_msg.delete(3600000)})
+    generalChannel.send(MainMessage+"\n" + "\n")/*.then(d_msg =>{d_msg.delete(3600000)})*/
     
     //Turning it back to a number
     for (i in Maindict.items){
