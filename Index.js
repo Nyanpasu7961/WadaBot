@@ -1,6 +1,6 @@
 const Discord = require('discord.js')
 const client = new Discord.Client()
-const fs = require('fs');
+//const fs = require('fs');
 client.raidAddList = require("./RaidBot_listData.json");
 
 var Maindict = {
@@ -24,11 +24,11 @@ const questions = [
     "What time zone do you reside in?"
 ];
 
-const applying = [
+var applying = [
 
 ]
 
-const applicationForm = [
+var applicationForm = [
 
 ]
 
@@ -48,7 +48,7 @@ client.on('ready', () => {
         startChannels.send("```css\nRaidBot is online.\n```")
     }*/
     //For save feature because i'm getting annoyed at when the RaidBot restarts, it resets the list
-    for (i = 0; i < Object.keys(client.raidAddList).length; i++){
+    /*for (i = 0; i < Object.keys(client.raidAddList).length; i++){
         console.log(client.raidAddList[Object.keys(client.raidAddList)[i]].Prefix)
         argConfig = []
         argConfig.push(client.raidAddList[Object.keys(client.raidAddList)[i]].Prefix, 
@@ -60,7 +60,7 @@ client.on('ready', () => {
 
         Maindict.items.push(argConfig)
     }
-    generalSorting()
+    generalSorting()*/
 })
 
 bot_secret_token = "PUT TOKEN HERE"
@@ -206,11 +206,13 @@ async function applicationCommand(receivedMessage){
                 }
                 //Appends answers into a list.
                 //Bolds the IGN
-                if (i == 0){
-                    applicationForm.push("```css\n" + questions[i] + ": " + collected.first().content +"\n```")
-                }
                 else{
-                    applicationForm.push(questions[i] + ": " + collected.first().content)
+                    if (i == 0){
+                        applicationForm.push("```css\n" + questions[i] + ": " + collected.first().content +"\n```")
+                    }
+                    else{
+                        applicationForm.push(questions[i] + ": " + collected.first().content)
+                    } 
                 } 
                 //If timed out, then cancel application.
               }).catch(() => {
@@ -402,7 +404,7 @@ function updateCommand(arguments, receivedMessage){
             receivedMessage.channel.send("The titan is not on the list.")
         }
         else{
-            receivedMessage.send("Updated " + arguments[1] + "'s raid target.")
+            receivedMessage.channel.send("Updated " + arguments[0] + "'s raid target.")
             console.log(index)
             Maindict.items[index][3] = arguments[1] // let HP change to HP assigned by argument 3.
             generalSorting() //Sort by HP
@@ -583,7 +585,7 @@ function generalSorting(){
                 console.log(Maindict.items[i][3])
             }
         }
-        raidOwner = Maindict.items[i][1];
+        /*raidOwner = Maindict.items[i][1];
         client.raidAddList [raidOwner] = {
             Prefix: Maindict.items[i][0],
             name: Maindict.items[i][1],
@@ -594,7 +596,7 @@ function generalSorting(){
         }
         fs.writeFile("./RaidBot_listData.json", JSON.stringify(client.raidAddList, null, 4), err =>{
             if (err) {throw err}
-        })
+        })*/
     }
 
     Maindict.items.sort(function(a, b){return parseInt(a[3])-parseInt(b[3])}) //sort HP values
